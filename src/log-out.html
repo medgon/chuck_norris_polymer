@@ -3,57 +3,51 @@
 <link rel="import" href="../bower_components/brum-global-variable/brum-global-variable.html">
 
 <dom-module id="log-out">
-    <template>
-        <style>
-        :host {
-            margin: 0;
-            padding: 0;
-        }
-
-        paper-button {
+  <template>
+    <style>
+      :host {
+        margin: 0;
+        padding: 0;
+      }
+      paper-button {
         color: #fff;
-        }
-        paper-button.link {
+      }
+      paper-button.link {
         color: #fff;
         display: inline-block;
         font-size: 13px;
-        }
-        paper-button.indigo {
+      }
+      paper-button.indigo {
         background-color: var(--paper-indigo-500);
         color: white;
         --paper-button-raised-keyboard-focus: {
-            background-color: var(--paper-pink-a200) !important;
-            color: white !important;
+          background-color: var(--paper-pink-a200) !important;
+          color: white !important;
         };
-        }
-        paper-button.indigo:hover {
+      }
+      paper-button.indigo:hover {
         background-color: var(--paper-indigo-400);
-        }
-        </style>
-        
-        <!-- MARKUP GOES HERE -->
-    </template>
+      }
+    </style>
 
-    <!-- This notify all parents and children that changes have been made -->
     <brum-global-variable key="userData" value="{{storedUser}}"></brum-global-variable>
 
-    <!-- check for a link property and if it's false, show a different button. Both buttons will call the same on-tap handler, logout() -->
     <template is="dom-if" if="{{!link}}">
-        <paper-button raised class="indigo" on-tap="logout">Log Out [[[storedUser.name]]]</paper-button>
+      <paper-button raised class="indigo" on-tap="logout">Log Out [[[storedUser.name]]]</paper-button>
     </template>
-          
+
     <template is="dom-if" if="{{link}}">
-        <paper-button class="link" on-tap="logout">Log Out [[[storedUser.name]]]</paper-button>
+      <paper-button class="link" on-tap="logout">Log Out [[[storedUser.name]]]</paper-button>
     </template>
+  </template>
 
-    <script>
-        (function() {
-            class LogOut extends Polymer.Element {
-                static get is() {
-                    return 'log-out';
-                }
-
-                static get properties() {
+  <script>
+      (function() {
+          class LogOut extends Polymer.Element {
+              static get is() {
+                  return 'log-out';
+              }
+              static get properties() {
                   return {
                       storedUser: Object,
                       link: {
@@ -62,14 +56,11 @@
                       }
                   }
               }
-
-            //   To log out, all we need to do is set the storedUser object to null
               logout() {
                   this.storedUser = null;
               }
-            }
-
-            window.customElements.define(LogOut.is, LogOut);
-        }());
-    </script>
+          }
+          window.customElements.define(LogOut.is, LogOut);
+      }());
+  </script>
 </dom-module>

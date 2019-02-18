@@ -20,12 +20,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="log-out.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="lazy-import" href="my-view1.html">
-<link rel="lazy-import" href="my-view2.html">
-<link rel="lazy-import" href="my-view3.html">
-<link rel="lazy-import" href="my-view404.html">
+<link rel="lazy-import" href="home-quotes.html">
+<link rel="lazy-import" href="register-login.html">
+<link rel="lazy-import" href="secret-quotes.html">
+<link rel="lazy-import" href="not-found.html">
 
 <dom-module id="my-app">
   <template>
@@ -66,7 +69,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         color: black;
         font-weight: bold;
       }
+
+      app-header .greeting,
+      app-header a {
+        color: #fff;
+        font-size: 13px;
+      }
+      app-header .greeting {
+        border-right: 1px solid rgba(255,255,255,.5);
+        display: inline-block;
+        padding-right: 6px;
+      }
     </style>
+
+    <iron-localstorage name="user-storage" value="{{storedUser}}"></iron-localstorage>
+    <brum-global-variable key="userData" value="{{storedUser}}"></brum-global-variable>
 
     <app-location
         route="{{route}}"
@@ -85,8 +102,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="home-quotes" href="[[rootPath]]home-quotes">Home</a>
-          <a name="secret-quotes" href="[[rootPath]]secret-quotes">Secret Quotes</a>
+
+            <div name="home-quotes">
+              <a href="[[rootPath]]home-quotes">Home</a>
+            </div>
+
+            <div name="secret-quotes" hidden$="[[!storedUser.loggedin]]">
+              <a href="[[rootPath]]secret-quotes">Secret Quotes</a>
+            </div>
         </iron-selector>
       </app-drawer>
 
@@ -97,7 +120,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
             <div main-title>Chuck Norris Quotes</div>
-            <a name="register-login" href="[[rootPath]]register-login">Log in</a>
+            <a name="register-login" href="[[rootPath]]register-login" hidden$="[[storedUser.loggedin]]">Log in</a>
+            <div hidden$="[[!storedUser.loggedin]]">
+              <span class="greeting">Hi [[storedUser.name]]!</span>
+              <log-out stored-user="{{storedUser}}" link></log-out>
+            </div>
           </app-toolbar>
         </app-header>
 
@@ -135,6 +162,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
           rootPath: String,
+          storedUser: Object,
         };
       }
 

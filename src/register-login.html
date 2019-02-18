@@ -1,20 +1,11 @@
-<!--
-@license
-Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../bower_components/iron-input/iron-input.html">
-<link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="register-login">
@@ -68,59 +59,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       on-error="handleUserError">
     </iron-ajax>
 
-    <!-- /persist user sessions -->
     <iron-localstorage name="user-storage" value="{{storedUser}}"></iron-localstorage>
-
-    <!-- This made all parents and children observed changes throughout the app. Making data available across the applications and notifies on changes.  -->
     <brum-global-variable key="userData" value="{{storedUser}}"></brum-global-variable>
 
-    <!-- redirect the user to another view with Polymer app routing in place.
-         Synchronizes browser location and application state and gives us access to a route object. -->
     <app-location route="{{route}}"></app-location>
+
     <div class="card">
+      <div id="unauthenticated" hidden$="[[storedUser.loggedin]]">
+        <h1>Log In</h1>
 
-      <!-- Hide div if user already logged in and currently in their session.
-      *$ means to bind to an attribute* 
-      -->
-      <div id="unauthenticated" hidden$="[[storedUser.loggedin]]"> 
-          <h1>Log In</h1>
+        <p><strong>Log in</strong> or <strong>sign up</strong> to access secret Chuck Norris quotes!</p>
 
-      <p><strong>Log in</strong> or <strong>sign up</strong> to access secret Chuck Norris quotes!</p>
-      
-      <!-- Error Message with there aren't anything to post -->
-      <template is="dom-if" if="[[error]]">
-        <p class="alert-error"><strong>Error:</strong> [[error]]</p>
-      </template>
+        <template is="dom-if" if="[[error]]">
+          <p class="alert-error"><strong>Error:</strong> [[error]]</p>
+        </template>
 
-      <paper-input-container>
-        <label slot="input">Username</label>
-        <iron-input slot="input" bind-value="{{formData.username}}">
-          <input id="username" type="text" value="{{formData.username}}" placeholder="Username">
-        </iron-input>
-      </paper-input-container>
+        <paper-input-container>
+          <label slot="input">Username</label>
+          <iron-input slot="input" bind-value="{{formData.username}}">
+            <input class="input-style" id="username" type="text" value="{{formData.username}}" placeholder="Username">
+          </iron-input>
+        </paper-input-container>
 
-      <paper-input-container>
-        <label>Password</label>
-        <iron-input slot="input" bind-value="{{formData.password}}">
-          <input id="password" type="password" value="{{formData.password}}" placeholder="Password">
-        </iron-input>
-      </paper-input-container>
+        <paper-input-container>
+          <label>Password</label>
+          <iron-input slot="input" bind-value="{{formData.password}}">
+            <input id="password" type="password" value="{{formData.password}}" placeholder="Password">
+          </iron-input>
+        </paper-input-container>
 
-      <div class="wrapper-btns">
-        <paper-button raised class="primary" on-tap="postLogin">Log In</paper-button>
-        <paper-button class="link" on-tap="postRegister">Sign Up</paper-button>
-      </div>
-
-      <div id="authenticated" hidden$="[[!storedUser.loggedin]]">
-          <h2>Hello, [[storedUser.name]]!</h2>
-          <p>You are currently logged in. You can access <a href="/secret-quotes">Secret Quotes</a>!</p>
-          <log-out stored-user="{{storedUser}}"></log-out>
+        <div class="wrapper-btns">
+          <paper-button raised class="primary" on-tap="postLogin">Log In</paper-button>
+          <paper-button class="link" on-tap="postRegister">Sign Up</paper-button>
         </div>
+      </div>
+      <div id="authenticated" hidden$="[[!storedUser.loggedin]]">
+        <h2>Hello, [[storedUser.name]]!</h2>
+        <p>You are currently logged in. You can access <a href="/secret-quotes">Secret Quotes</a>!</p>
+        <log-out stored-user="{{storedUser}}"></log-out>
+      </div>
     </div>
   </template>
 
   <script>
-        class RegisterLogin extends Polymer.Element {
+      class RegisterLogin extends Polymer.Element {
           static get is() { return 'register-login'; }
           static get properties() {
               return {
@@ -155,7 +137,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                       access_token: response.access_token,
                       loggedin: true
                   };
-                  // redirect to Secret Quotes after User has been logged in. This fire with using the app-location component
+                  // redirect to Secret Quotes
                   this.set('route.path', '/secret-quotes');
               }
               // reset form data
@@ -163,7 +145,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
           handleUserError(event) {
               this.error = event.detail.request.xhr.response;
-
           }
       }
       window.customElements.define(RegisterLogin.is, RegisterLogin);
