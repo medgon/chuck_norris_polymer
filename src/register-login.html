@@ -9,31 +9,163 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/brum-global-variable/brum-global-variable.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="my-view2">
+<dom-module id="register-login">
   <template>
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
+      }
+      .wrapper-btns {
+        margin-top: 15px;
+      }
+      paper-button.link {
+        color: #757575;
+      }
+      .alert-error {
+        background: #ffcdd2;
+        border: 1px solid #f44336;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+      }
+      input {
+        position: relative; /* to make a stacking context */
+        outline: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--paper-input-container-input-color, var(--primary-text-color));
+        -webkit-appearance: none;
+        text-align: inherit;
+        vertical-align: bottom;
+        /* Firefox sets a min-width on the input, which can cause layout issues */
+        min-width: 0;
+        @apply --paper-font-subhead;
+        @apply --paper-input-container-input;
       }
     </style>
 
+    <iron-ajax
+      id="registerLoginAjax"
+      method="post"
+      content-type="application/json"
+      handle-as="text"
+      on-response="handleUserResponse"
+      on-error="handleUserError">
+    </iron-ajax>
+
+    <!-- /persist user sessions -->
+    <iron-localstorage name="user-storage" value="{{storedUser}}"></iron-localstorage>
+
+    <!-- This made all parents and children observed changes throughout the app. Making data available across the applications and notifies on changes.  -->
+    <brum-global-variable key="userData" value="{{storedUser}}"></brum-global-variable>
+
+    <!-- redirect the user to another view with Polymer app routing in place.
+         Synchronizes browser location and application state and gives us access to a route object. -->
+    <app-location route="{{route}}"></app-location>
     <div class="card">
-      <div class="circle">2</div>
-      <h1>View Two</h1>
-      <p>Ea duis bonorum nec, falli paulo aliquid ei eum.</p>
-      <p>Id nam odio natum malorum, tibique copiosae expetenda mel ea.Detracto suavitate repudiandae no eum. Id adhuc minim soluta nam.Id nam odio natum malorum, tibique copiosae expetenda mel ea.</p>
+
+      <!-- Hide div if user already logged in and currently in their session.
+      *$ means to bind to an attribute* 
+      -->
+      <div id="unauthenticated" hidden$="[[storedUser.loggedin]]"> 
+          <h1>Log In</h1>
+
+      <p><strong>Log in</strong> or <strong>sign up</strong> to access secret Chuck Norris quotes!</p>
+      
+      <!-- Error Message with there aren't anything to post -->
+      <template is="dom-if" if="[[error]]">
+        <p class="alert-error"><strong>Error:</strong> [[error]]</p>
+      </template>
+
+      <paper-input-container>
+        <label slot="input">Username</label>
+        <iron-input slot="input" bind-value="{{formData.username}}">
+          <input id="username" type="text" value="{{formData.username}}" placeholder="Username">
+        </iron-input>
+      </paper-input-container>
+
+      <paper-input-container>
+        <label>Password</label>
+        <iron-input slot="input" bind-value="{{formData.password}}">
+          <input id="password" type="password" value="{{formData.password}}" placeholder="Password">
+        </iron-input>
+      </paper-input-container>
+
+      <div class="wrapper-btns">
+        <paper-button raised class="primary" on-tap="postLogin">Log In</paper-button>
+        <paper-button class="link" on-tap="postRegister">Sign Up</paper-button>
+      </div>
+
+      <div id="authenticated" hidden$="[[!storedUser.loggedin]]">
+          <h2>Hello, [[storedUser.name]]!</h2>
+          <p>You are currently logged in. You can access <a href="/secret-quotes">Secret Quotes</a>!</p>
+          <log-out stored-user="{{storedUser}}"></log-out>
+        </div>
     </div>
   </template>
 
   <script>
-    class MyView2 extends Polymer.Element {
-      static get is() { return 'my-view2'; }
-    }
+        class RegisterLogin extends Polymer.Element {
+          static get is() { return 'register-login'; }
+          static get properties() {
+              return {
+                  formData: {
+                      type: Object,
+                      value: {}
+                  },
+                  storedUser: Object,
+                  error: String
+              }
+          }
+          _setReqBody() {
+              this.$.registerLoginAjax.body = this.formData;
+          }
+          postLogin() {
+              this.$.registerLoginAjax.url = 'http://localhost:3001/sessions/create';
+              this._setReqBody();
+              this.$.registerLoginAjax.generateRequest();
+          }
+          postRegister() {
+              this.$.registerLoginAjax.url = 'http://localhost:3001/users';
+              this._setReqBody();
+              this.$.registerLoginAjax.generateRequest();
+          }
+          handleUserResponse(event) {
+              var response = JSON.parse(event.detail.response);
+              if (response.id_token) {
+                  this.error = '';
+                  this.storedUser = {
+                      name: this.formData.username,
+                      id_token: response.id_token,
+                      access_token: response.access_token,
+                      loggedin: true
+                  };
+                  // redirect to Secret Quotes after User has been logged in. This fire with using the app-location component
+                  this.set('route.path', '/secret-quotes');
+              }
+              // reset form data
+              this.formData = {};
+          }
+          handleUserError(event) {
+              this.error = event.detail.request.xhr.response;
 
-    window.customElements.define(MyView2.is, MyView2);
+          }
+      }
+      window.customElements.define(RegisterLogin.is, RegisterLogin);
   </script>
 </dom-module>
